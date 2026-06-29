@@ -1,6 +1,7 @@
 import logging
 import os
 from pathlib import Path
+from typing import Literal
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -13,8 +14,11 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI(
     title="EarningsIQ API",
-    description="RAG pipeline for financial report Q&A: TF-IDF retrieval + Claude generation",
-    version="1.0.0",
+    description=(
+        "RAG pipeline for financial report Q&A. "
+        "Supports TF-IDF and BM25 retrieval with a side-by-side comparison endpoint."
+    ),
+    version="2.0.0",
 )
 
 app.add_middleware(
@@ -49,6 +53,12 @@ class QueryRequest(BaseModel):
     query: str
     api_key: str
     document_id: str
+    retrieval_mode: Literal["tfidf", "bm25"] = "bm25"
+
+
+class CompareRequest(BaseModel):
+    query: str
+    document_id: str
 
 
 class IngestRequest(BaseModel):
@@ -66,8 +76,25 @@ async def ingest_document(req: IngestRequest):
 @app.post("/api/query")
 async def query_document(req: QueryRequest):
     if not req.api_key.startswith("sk-ant-"):
-        raise HTTPException(status_code=400, detail="Invalid Anthropic API key format (must start with sk-ant-)")
-    result = await rag.query(req.document_id, req.query, req.api_key)
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid Anthropic API key format (must start with sk-ant-)",
+        )
+    result = await rag.query(req.document_id, req.query, req.api_key, req.retrieval_mode)
+    return result
+
+
+@app.post("/api/compare")
+async def compare_retrieval(req: CompareRequest):
+    """
+    Run both TF-IDF and BM25 on the same query without generation.
+    Returns retrieved passages from each method and an agreement rate.
+    Use this to understand when the two retrieval methods diverge and why.
+    No API key required -- this only runs retrieval, not generation.
+    """
+    result = rag.compare_retrieval(req.document_id, req.query)
+    if "error" in result:
+        raise HTTPException(status_code=404, detail=result["error"])
     return result
 
 
@@ -84,4 +111,9 @@ async def delete_document(document_id: str):
 
 @app.get("/health")
 async def health():
-    return {"status": "ok", "service": "earningsiq", "indexed_docs": len(rag.list_documents())}
+    return {
+        "status": "ok",
+        "service": "earningsiq",
+        "indexed_docs": len(rag.list_documents()),
+        "retrieval_modes": ["tfidf", "bm25"],
+    }

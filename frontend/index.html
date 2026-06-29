@@ -52,6 +52,9 @@
     .arch-box { display: none; margin-top: 8px; background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 12px; font-size: 11px; color: var(--muted); line-height: 1.6; }
     .arch-box.open { display: block; }
     .arch-box code { color: var(--accent2); font-family: monospace; font-size: 10px; }
+    .mode-btn { flex: 1; padding: 6px 10px; background: var(--surface); border: 1px solid var(--border); color: var(--muted); border-radius: 5px; cursor: pointer; font-size: 11px; font-weight: 500; transition: all .15s; }
+    .mode-btn.active { background: #1a2535; border-color: var(--accent); color: var(--accent); }
+    .mode-btn:hover:not(.active) { border-color: var(--accent); color: var(--text); }
 
     /* Main chat area */
     .main { display: flex; flex-direction: column; }
@@ -103,7 +106,7 @@
 <header>
   <div>
     <h1>EarningsIQ</h1>
-    <p>Financial report Q&amp;A via TF-IDF retrieval + Claude generation</p>
+    <p>Financial report Q&amp;A -- TF-IDF or BM25 retrieval + Claude generation</p>
   </div>
   <span class="badge">RAG Pipeline</span>
 </header>
@@ -112,6 +115,15 @@
   <aside>
     <h2>Documents</h2>
     <div id="doc-list"><div style="color:var(--muted);font-size:12px">Loading...</div></div>
+
+    <div class="api-section" style="margin-top:20px;">
+      <label>Retrieval Mode</label>
+      <div style="display:flex;gap:6px;margin-bottom:8px;">
+        <button class="mode-btn active" id="mode-bm25" onclick="setMode('bm25')">BM25</button>
+        <button class="mode-btn" id="mode-tfidf" onclick="setMode('tfidf')">TF-IDF</button>
+      </div>
+      <div id="mode-hint" style="font-size:10px;color:var(--muted);line-height:1.5;">BM25 is the default. Saturates repeated terms and normalises for chunk length. TF-IDF uses cosine similarity on raw term-frequency vectors.</div>
+    </div>
 
     <div class="api-section">
       <label>Anthropic API Key</label>
@@ -123,12 +135,12 @@
       <button onclick="toggleArch()">How the pipeline works</button>
       <div class="arch-box" id="arch-box">
         <strong style="color:var(--text)">4-step RAG pipeline:</strong><br/><br/>
-        <strong>1. Ingest</strong> — text split into 500-word chunks with 80-word overlap<br/>
-        <strong>2. Index</strong> — TF-IDF matrix built in memory; no vector DB required<br/>
-        <strong>3. Retrieve</strong> — cosine similarity scores your question against all chunks; top-4 returned<br/>
-        <strong>4. Generate</strong> — retrieved passages sent to <code>claude-haiku-4-5</code> as context; grounded answer returned<br/><br/>
-        <strong style="color:var(--text)">Why TF-IDF?</strong><br/>
-        Zero infrastructure, fully explainable, sub-millisecond retrieval. Works well for financial text where terminology is consistent (revenue, margin, EPS appear verbatim). Dense embeddings would add semantic recall at the cost of a vector DB dependency.
+        <strong>1. Ingest</strong> -- text split into 500-word chunks with 80-word overlap<br/>
+        <strong>2. Index</strong> -- TF-IDF and BM25 matrices built in memory; no vector DB<br/>
+        <strong>3. Retrieve</strong> -- selected method scores chunks; top-4 returned with relevance scores<br/>
+        <strong>4. Generate</strong> -- passages sent to <code>claude-haiku-4-5</code>; grounded answer returned<br/><br/>
+        <strong style="color:var(--text)">TF-IDF vs BM25</strong><br/>
+        TF-IDF: cosine similarity on normalised term-frequency vectors. BM25: adds term saturation (repeated terms give diminishing returns) and length normalisation. BM25 is the default in Elasticsearch and Lucene. Use /api/compare to see how the two differ on your query.
       </div>
     </div>
   </aside>
@@ -158,6 +170,18 @@
   const API = 'http://localhost:8003';
   let activeDoc = null;
   let loading = false;
+  let retrievalMode = 'bm25';
+
+  function setMode(mode) {
+    retrievalMode = mode;
+    document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('mode-' + mode).classList.add('active');
+    const hints = {
+      bm25: 'BM25 is the default. Saturates repeated terms and normalises for chunk length. Standard in Elasticsearch and Lucene.',
+      tfidf: 'TF-IDF: cosine similarity on normalised term-frequency vectors. Fully explainable -- every score is a deterministic dot product.',
+    };
+    document.getElementById('mode-hint').textContent = hints[mode];
+  }
 
   function toggleArch() {
     document.getElementById('arch-box').classList.toggle('open');
@@ -231,7 +255,7 @@
       const res = await fetch(API + '/api/query', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query: q, api_key: key, document_id: activeDoc }),
+        body: JSON.stringify({ query: q, api_key: key, document_id: activeDoc, retrieval_mode: retrievalMode }),
       });
       const data = await res.json();
       removeThinking(thinkId);
@@ -291,11 +315,12 @@
     `).join('');
 
     const model = data.model ? ` &middot; ${data.model}` : '';
+    const modeLabel = data.retrieval_mode ? ` &middot; retrieval: ${data.retrieval_mode.toUpperCase()}` : '';
 
     div.innerHTML = `
       <div class="answer-block">
         <div class="answer-text">${esc(data.answer || '')}</div>
-        <div class="answer-meta">${(data.retrieved || []).length} passages retrieved${model}</div>
+        <div class="answer-meta">${(data.retrieved || []).length} passages retrieved${modeLabel}${model}</div>
       </div>
       ${passages ? `
         <details class="retrieved-section">
