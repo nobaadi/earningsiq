@@ -1,0 +1,64 @@
+DBS Group Holdings Ltd
+Annual Report 2023 - Selected Financial Highlights and Management Discussion
+
+FINANCIAL PERFORMANCE OVERVIEW
+
+DBS Group reported record net profit of SGD 10.3 billion for the full year 2023, an increase of 26% from SGD 8.19 billion in 2022. This performance was driven by higher net interest income as central banks maintained elevated interest rates throughout the year. Total income grew 22% to SGD 20.1 billion.
+
+Net interest income rose 27% to SGD 14.4 billion as the net interest margin expanded 36 basis points to 2.93%. Fee income declined 2% to SGD 3.44 billion, impacted by subdued wealth management sentiment in the first half of the year, before recovering in the second half as market confidence returned.
+
+BALANCE SHEET
+
+Total assets stood at SGD 766 billion as at 31 December 2023, up from SGD 714 billion a year earlier. Customer loans grew 3% to SGD 420 billion. Customer deposits increased 5% to SGD 527 billion.
+
+The common equity tier 1 (CET1) capital ratio was 14.6%, well above the regulatory minimum of 9% and our own target of 12.5%. The leverage ratio was 6.8%, comfortably above the 3% minimum.
+
+Non-performing loan (NPL) ratio remained stable at 1.1%. Specific allowances for credit losses were SGD 0.98 billion, representing 22 basis points of loans.
+
+BUSINESS SEGMENTS
+
+Consumer Banking and Wealth Management income grew 30% to SGD 7.2 billion, supported by expanded net interest margin on deposits and growth in loans. The number of high net worth clients with assets under management exceeding SGD 1 million grew 9% to 47,000. Total assets under management stood at SGD 346 billion.
+
+Institutional Banking income increased 18% to SGD 9.8 billion. Treasury income rose 15% to SGD 2.5 billion. Cash management and transaction banking income grew 24% as trade and supply chain finance benefited from higher interest rates and increased transaction volumes.
+
+Markets income was SGD 1.2 billion, reflecting more subdued trading conditions compared to the exceptional environment in prior years.
+
+DIGITAL BANKING
+
+DBS processed 7.2 billion digital transactions in 2023, a 17% increase year-on-year. The DBS digibank app had 9.1 million active users across Singapore, Hong Kong, India, Indonesia, Taiwan, and China. Cost-to-income ratio for digital customers was 35%, compared to 68% for traditional customers.
+
+DBS Vickers digital trading platform recorded a 12% increase in active investors. The bank processed SGD 125 billion in digital payment volume.
+
+DBS won Euromoney's World's Best Digital Bank award for the sixth consecutive year.
+
+DIVIDEND
+
+The Board declared a final dividend of SGD 0.54 per share, bringing the full year 2023 dividend to SGD 2.16 per share, up 42% from SGD 1.52 per share in 2022. The full year dividend payout ratio was approximately 50% of net profit.
+
+SUSTAINABILITY
+
+DBS committed to mobilising SGD 50 billion in sustainable finance by 2024 and reached SGD 46 billion as at December 2023. The bank reduced its Scope 1 and 2 carbon emissions by 12% compared to the 2019 baseline. DBS was included in the Dow Jones Sustainability Indices World Index for the third consecutive year.
+
+The bank's responsible financing framework covers coal mining, oil sands, Arctic drilling, and tobacco. DBS has set targets to reduce financed emissions across eight high-carbon sectors in alignment with the Paris Agreement goals.
+
+OUTLOOK
+
+Management guided for 2024 total income to be similar to or modestly higher than 2023, with net interest margin expected to compress modestly as interest rates begin to decline. Return on equity target was maintained at above 15%.
+
+The group anticipated continued growth in wealth management as high net worth clients diversify portfolios amid global uncertainty. Singapore remained the primary wealth hub, with Hong Kong as the second largest contributor.
+
+RISK MANAGEMENT
+
+DBS maintained a diversified loan portfolio with Singapore accounting for 52% of total loans, followed by Greater China at 21%, South and Southeast Asia at 17%, and the rest of the world at 10%.
+
+Credit concentration to real estate remained well-managed at 19% of total loans. Liquidity coverage ratio was 154%, comfortably above the 100% regulatory minimum. Net stable funding ratio was 115%.
+
+The bank conducted stress tests assuming GDP contractions of up to 5%, property price declines of up to 30%, and credit spreads widening by 300 basis points. Results confirmed that capital ratios would remain above regulatory minimums under severe stress scenarios.
+
+TECHNOLOGY AND OPERATIONS
+
+DBS invested SGD 1.8 billion in technology in 2023, representing 8.9% of total income. Cloud adoption reached 67% of workloads, compared to 52% in 2022. The bank migrated its core banking system for Singapore retail customers to a cloud-native architecture.
+
+Artificial intelligence applications expanded to 450 use cases across business lines, including credit scoring models that assess 47 alternative data variables for small and medium enterprise lending, and natural language processing tools for customer service that handle 2.1 million automated conversations per month.
+
+Cybersecurity investment increased 18% to protect against the growing sophistication of digital threats. DBS reported zero material cybersecurity incidents in 2023.

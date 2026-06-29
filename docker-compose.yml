@@ -1,0 +1,7 @@
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "8003:8003"
+    environment:
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}

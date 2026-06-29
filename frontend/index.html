@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EarningsIQ - Financial Report Q&A</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --surface2: #222536;
+      --border: #2a2d3e;
+      --accent: #4f8ef7;
+      --accent2: #34d399;
+      --text: #e2e8f0;
+      --muted: #8892a4;
+      --danger: #f87171;
+      --warn: #fbbf24;
+    }
+    body { background: var(--bg); color: var(--text); font-family: system-ui, sans-serif; font-size: 14px; min-height: 100vh; }
+
+    header { padding: 20px 32px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 16px; }
+    header h1 { font-size: 18px; font-weight: 600; }
+    header p { font-size: 13px; color: var(--muted); margin-top: 2px; }
+    .badge { font-size: 11px; padding: 3px 9px; border-radius: 4px; background: #1a2535; color: var(--accent); border: 1px solid #1e3a5e; }
+
+    .layout { display: grid; grid-template-columns: 280px 1fr; min-height: calc(100vh - 65px); }
+
+    /* Sidebar */
+    aside { border-right: 1px solid var(--border); padding: 20px 16px; }
+    aside h2 { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 12px; }
+    .doc-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; margin-bottom: 8px; cursor: pointer; transition: border-color .15s; }
+    .doc-card:hover { border-color: var(--accent); }
+    .doc-card.active { border-color: var(--accent); background: #1a2535; }
+    .doc-card .doc-title { font-size: 13px; font-weight: 500; margin-bottom: 4px; }
+    .doc-card .doc-meta { font-size: 11px; color: var(--muted); }
+    .doc-card .doc-badge { display: inline-block; margin-top: 6px; font-size: 10px; padding: 2px 7px; border-radius: 3px; background: #1e2a1e; color: var(--accent2); }
+
+    .api-section { margin-top: 20px; }
+    .api-section label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 6px; text-transform: uppercase; letter-spacing: .05em; }
+    input[type=password], input[type=text] {
+      width: 100%; background: var(--surface); border: 1px solid var(--border);
+      color: var(--text); padding: 8px 10px; border-radius: 6px; font-size: 12px; font-family: monospace; outline: none;
+    }
+    input:focus { border-color: var(--accent); }
+    .key-hint { font-size: 10px; color: var(--muted); margin-top: 4px; }
+
+    .arch-toggle { margin-top: 20px; }
+    .arch-toggle button { width: 100%; background: none; border: 1px solid var(--border); color: var(--muted); padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; text-align: left; }
+    .arch-toggle button:hover { border-color: var(--accent); color: var(--text); }
+    .arch-box { display: none; margin-top: 8px; background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 12px; font-size: 11px; color: var(--muted); line-height: 1.6; }
+    .arch-box.open { display: block; }
+    .arch-box code { color: var(--accent2); font-family: monospace; font-size: 10px; }
+
+    /* Main chat area */
+    .main { display: flex; flex-direction: column; }
+    .chat-area { flex: 1; padding: 24px 32px; overflow-y: auto; max-height: calc(100vh - 200px); }
+
+    .empty-state { text-align: center; padding: 60px 20px; color: var(--muted); }
+    .empty-state h3 { font-size: 15px; color: var(--text); margin-bottom: 8px; }
+    .empty-state p { font-size: 13px; line-height: 1.6; max-width: 420px; margin: 0 auto 24px; }
+    .suggested { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+    .suggestion { padding: 8px 14px; background: var(--surface); border: 1px solid var(--border); border-radius: 20px; font-size: 12px; cursor: pointer; transition: border-color .15s; }
+    .suggestion:hover { border-color: var(--accent); color: var(--accent); }
+
+    .message { margin-bottom: 24px; }
+    .message.user { display: flex; justify-content: flex-end; }
+    .message.user .bubble { background: var(--accent); color: white; padding: 10px 14px; border-radius: 12px 12px 2px 12px; max-width: 60%; font-size: 13px; line-height: 1.5; }
+    .message.assistant { display: flex; flex-direction: column; gap: 10px; }
+    .answer-block { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px; }
+    .answer-block .answer-text { font-size: 13px; line-height: 1.7; white-space: pre-wrap; }
+    .answer-block .answer-meta { margin-top: 10px; font-size: 11px; color: var(--muted); }
+    .retrieved-section { font-size: 11px; color: var(--muted); margin-top: 8px; }
+    .retrieved-section summary { cursor: pointer; padding: 6px 0; }
+    .retrieved-section summary:hover { color: var(--text); }
+    .passage { background: var(--surface2); border-left: 2px solid var(--border); padding: 10px 12px; margin-top: 8px; border-radius: 0 6px 6px 0; }
+    .passage .p-score { font-size: 10px; color: var(--accent2); font-weight: 600; margin-bottom: 4px; }
+    .passage .p-text { font-size: 11px; line-height: 1.6; color: var(--muted); }
+    .error-msg { background: #2a1a1a; border: 1px solid #4a2020; color: var(--danger); padding: 12px 14px; border-radius: 8px; font-size: 13px; }
+    .thinking { color: var(--muted); font-size: 13px; padding: 8px 0; }
+    .thinking::after { content: '...'; animation: dots 1.2s infinite; }
+    @keyframes dots { 0%,20% { content: '.'; } 40%,60% { content: '..'; } 80%,100% { content: '...'; } }
+
+    .input-bar { border-top: 1px solid var(--border); padding: 16px 32px; display: flex; gap: 10px; }
+    .input-bar textarea { flex: 1; background: var(--surface); border: 1px solid var(--border); color: var(--text); padding: 10px 14px; border-radius: 8px; font-size: 13px; font-family: inherit; resize: none; height: 44px; max-height: 120px; outline: none; overflow: hidden; }
+    .input-bar textarea:focus { border-color: var(--accent); }
+    .send-btn { padding: 0 20px; background: var(--accent); border: none; color: white; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 500; white-space: nowrap; }
+    .send-btn:hover { opacity: .88; }
+    .send-btn:disabled { opacity: .4; cursor: not-allowed; }
+
+    @media (max-width: 700px) {
+      .layout { grid-template-columns: 1fr; }
+      aside { border-right: none; border-bottom: 1px solid var(--border); }
+      header { padding: 14px 16px; }
+      .chat-area { padding: 16px; }
+      .input-bar { padding: 12px 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>EarningsIQ</h1>
+    <p>Financial report Q&amp;A via TF-IDF retrieval + Claude generation</p>
+  </div>
+  <span class="badge">RAG Pipeline</span>
+</header>
+
+<div class="layout">
+  <aside>
+    <h2>Documents</h2>
+    <div id="doc-list"><div style="color:var(--muted);font-size:12px">Loading...</div></div>
+
+    <div class="api-section">
+      <label>Anthropic API Key</label>
+      <input type="password" id="api-key" placeholder="sk-ant-api03-..." autocomplete="off" />
+      <div class="key-hint">Key is sent directly to Claude API. Not stored or logged.</div>
+    </div>
+
+    <div class="arch-toggle">
+      <button onclick="toggleArch()">How the pipeline works</button>
+      <div class="arch-box" id="arch-box">
+        <strong style="color:var(--text)">4-step RAG pipeline:</strong><br/><br/>
+        <strong>1. Ingest</strong> — text split into 500-word chunks with 80-word overlap<br/>
+        <strong>2. Index</strong> — TF-IDF matrix built in memory; no vector DB required<br/>
+        <strong>3. Retrieve</strong> — cosine similarity scores your question against all chunks; top-4 returned<br/>
+        <strong>4. Generate</strong> — retrieved passages sent to <code>claude-haiku-4-5</code> as context; grounded answer returned<br/><br/>
+        <strong style="color:var(--text)">Why TF-IDF?</strong><br/>
+        Zero infrastructure, fully explainable, sub-millisecond retrieval. Works well for financial text where terminology is consistent (revenue, margin, EPS appear verbatim). Dense embeddings would add semantic recall at the cost of a vector DB dependency.
+      </div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="chat-area" id="chat">
+      <div class="empty-state" id="empty-state">
+        <h3>Ask a question about an annual report</h3>
+        <p>Select a document on the left, enter your Anthropic API key, then ask any question. The pipeline retrieves the most relevant passages from the report and uses Claude to generate a grounded answer.</p>
+        <div class="suggested" id="suggestions">
+          <div class="suggestion" onclick="useSuggestion(this)">What was the net profit?</div>
+          <div class="suggestion" onclick="useSuggestion(this)">How did revenue change year-on-year?</div>
+          <div class="suggestion" onclick="useSuggestion(this)">What are the key risk factors?</div>
+          <div class="suggestion" onclick="useSuggestion(this)">What dividend was declared?</div>
+          <div class="suggestion" onclick="useSuggestion(this)">Describe the sustainability commitments</div>
+        </div>
+      </div>
+    </div>
+    <div class="input-bar">
+      <textarea id="q-input" placeholder="Ask a question about the selected document..." rows="1" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+      <button class="send-btn" id="send-btn" onclick="sendQuery()">Ask</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const API = 'http://localhost:8003';
+  let activeDoc = null;
+  let loading = false;
+
+  function toggleArch() {
+    document.getElementById('arch-box').classList.toggle('open');
+  }
+
+  function useSuggestion(el) {
+    document.getElementById('q-input').value = el.textContent;
+    sendQuery();
+  }
+
+  function handleKey(e) {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendQuery(); }
+  }
+
+  function autoResize(el) {
+    el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+  }
+
+  async function loadDocs() {
+    try {
+      const res = await fetch(API + '/api/documents');
+      const data = await res.json();
+      const docs = data.documents || [];
+      if (!docs.length) {
+        document.getElementById('doc-list').innerHTML =
+          '<div style="color:var(--danger);font-size:12px">Backend not running. Start with: docker compose up --build</div>';
+        return;
+      }
+      document.getElementById('doc-list').innerHTML = docs.map(d => `
+        <div class="doc-card" id="doc-${d.id}" onclick="selectDoc('${d.id}', this)">
+          <div class="doc-title">${d.title}</div>
+          <div class="doc-meta">${d.chunks} chunks &middot; ${(d.chars/1000).toFixed(0)}k chars</div>
+          <div class="doc-badge">pre-indexed</div>
+        </div>
+      `).join('');
+      // Auto-select first
+      const first = docs[0];
+      selectDoc(first.id, document.getElementById('doc-' + first.id));
+    } catch (e) {
+      document.getElementById('doc-list').innerHTML =
+        `<div style="color:var(--danger);font-size:12px">Could not reach backend at ${API}.<br/>Run: <code style="font-size:10px">docker compose up --build</code></div>`;
+    }
+  }
+
+  function selectDoc(id, el) {
+    document.querySelectorAll('.doc-card').forEach(c => c.classList.remove('active'));
+    if (el) el.classList.add('active');
+    activeDoc = id;
+  }
+
+  async function sendQuery() {
+    if (loading) return;
+    const q = document.getElementById('q-input').value.trim();
+    const key = document.getElementById('api-key').value.trim();
+    if (!q) return;
+    if (!activeDoc) { appendError('Select a document first.'); return; }
+    if (!key) { appendError('Enter your Anthropic API key.'); return; }
+    if (!key.startsWith('sk-ant-')) { appendError('API key must start with sk-ant-'); return; }
+
+    document.getElementById('empty-state')?.remove();
+    document.getElementById('q-input').value = '';
+    document.getElementById('q-input').style.height = '44px';
+
+    appendMessage('user', q);
+    const thinkId = appendThinking();
+    loading = true;
+    document.getElementById('send-btn').disabled = true;
+
+    try {
+      const res = await fetch(API + '/api/query', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: q, api_key: key, document_id: activeDoc }),
+      });
+      const data = await res.json();
+      removeThinking(thinkId);
+
+      if (data.error && !data.answer) {
+        appendError(data.error);
+      } else {
+        appendAnswer(data);
+      }
+    } catch (e) {
+      removeThinking(thinkId);
+      appendError('Could not reach backend: ' + e.message);
+    } finally {
+      loading = false;
+      document.getElementById('send-btn').disabled = false;
+    }
+  }
+
+  function appendMessage(role, text) {
+    const chat = document.getElementById('chat');
+    const div = document.createElement('div');
+    div.className = 'message ' + role;
+    if (role === 'user') {
+      div.innerHTML = `<div class="bubble">${esc(text)}</div>`;
+    }
+    chat.appendChild(div);
+    chat.scrollTop = chat.scrollHeight;
+    return div;
+  }
+
+  function appendThinking() {
+    const id = 'think-' + Date.now();
+    const chat = document.getElementById('chat');
+    const div = document.createElement('div');
+    div.className = 'message assistant';
+    div.id = id;
+    div.innerHTML = '<div class="thinking">Retrieving passages and generating answer</div>';
+    chat.appendChild(div);
+    chat.scrollTop = chat.scrollHeight;
+    return id;
+  }
+
+  function removeThinking(id) {
+    document.getElementById(id)?.remove();
+  }
+
+  function appendAnswer(data) {
+    const chat = document.getElementById('chat');
+    const div = document.createElement('div');
+    div.className = 'message assistant';
+
+    const passages = (data.retrieved || []).map((r, i) => `
+      <div class="passage">
+        <div class="p-score">Passage ${i + 1} &middot; relevance ${r.score}%</div>
+        <div class="p-text">${esc(r.text.slice(0, 300))}${r.text.length > 300 ? '...' : ''}</div>
+      </div>
+    `).join('');
+
+    const model = data.model ? ` &middot; ${data.model}` : '';
+
+    div.innerHTML = `
+      <div class="answer-block">
+        <div class="answer-text">${esc(data.answer || '')}</div>
+        <div class="answer-meta">${(data.retrieved || []).length} passages retrieved${model}</div>
+      </div>
+      ${passages ? `
+        <details class="retrieved-section">
+          <summary>Retrieved passages (${(data.retrieved || []).length})</summary>
+          ${passages}
+        </details>
+      ` : ''}
+    `;
+    chat.appendChild(div);
+    chat.scrollTop = chat.scrollHeight;
+  }
+
+  function appendError(msg) {
+    const chat = document.getElementById('chat');
+    const div = document.createElement('div');
+    div.className = 'message assistant';
+    div.innerHTML = `<div class="error-msg">${esc(msg)}</div>`;
+    chat.appendChild(div);
+    chat.scrollTop = chat.scrollHeight;
+  }
+
+  function esc(s) {
+    return String(s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/\n/g, '<br/>');
+  }
+
+  loadDocs();
+</script>
+</body>
+</html>
