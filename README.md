@@ -1,6 +1,8 @@
 # EarningsIQ: Financial Report Q&A with RAG
 
-A retrieval-augmented generation (RAG) system for querying annual reports. You select a document, ask a question in plain English, and get a grounded answer that cites the specific passages it was drawn from.
+A retrieval-augmented generation system for querying annual reports. Select a document, ask a question in plain English, and get a grounded answer citing the specific passages it was drawn from.
+
+Two retrieval algorithms are implemented and can be compared side-by-side: TF-IDF cosine similarity and Okapi BM25. A dedicated `/api/compare` endpoint runs both on the same query and returns an agreement rate, making the retrieval behaviour directly observable.
 
 [![Python](https://img.shields.io/badge/Python-3.11+-3776AB?logo=python&logoColor=white)](https://python.org)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
@@ -13,26 +15,29 @@ A retrieval-augmented generation (RAG) system for querying annual reports. You s
 
 The backend implements a four-step RAG pipeline:
 
-1. **Ingest** -- document text is split into 500-word overlapping chunks (80-word overlap) to preserve context across boundaries
-2. **Index** -- a TF-IDF term matrix is built in memory for each document; no external vector database required
-3. **Retrieve** -- cosine similarity scores the query against all chunks; top-4 passages are returned with relevance percentages
-4. **Generate** -- retrieved passages are injected as context into a Claude API prompt; the model generates a grounded answer
+1. **Ingest** -- document text is split into 500-word overlapping chunks (80-word overlap) to preserve context across chunk boundaries
+2. **Index** -- both a TF-IDF term matrix and a BM25 index are built in memory for each ingested document
+3. **Retrieve** -- BM25 (default) or TF-IDF scores the query against all chunks; top-4 passages are returned with relevance scores normalised to [0, 100]
+4. **Generate** -- retrieved passages are injected as context into a Claude API prompt; the model generates a grounded answer and is instructed to cite passage numbers
 
-The frontend calls `/api/query` with the question, document ID, and API key. The backend handles all retrieval and generation, then returns the answer plus the retrieved passages and their scores.
+The frontend calls `/api/query` with the question, document ID, API key, and retrieval mode. A BM25/TF-IDF mode toggle in the sidebar switches retrieval algorithms without reloading the document. The `/api/compare` endpoint runs both algorithms on the same query without generation -- useful for seeing exactly where they agree and where they diverge.
 
-Demo documents (DBS Group 2023 and Singapore Airlines FY2022/23 annual report excerpts) are auto-ingested when the backend starts.
+Demo documents (DBS Group 2023 and Singapore Airlines FY2022/23 annual report excerpts) are auto-ingested at startup.
 
 ---
 
-## Why TF-IDF Instead of a Vector Database
+## Retrieval: TF-IDF vs BM25
 
-This is an intentional design choice worth explaining in an interview:
+Both methods are implemented from scratch using only Python standard library and `math`. No retrieval library is used.
 
-**What TF-IDF gives you:** zero infrastructure, deterministic retrieval, fully explainable scores, sub-millisecond latency, no embedding API costs. For financial reports where terminology is consistent (revenue, net profit, margin appear verbatim in both the question and the document), lexical matching is sufficient.
+**TF-IDF + cosine similarity:**  
+Score = dot(q\_tfidf, chunk\_tfidf) / (|q| × |chunk|). Normalised to [0, 1]. Penalises repeated terms proportionally to term frequency. Blind to chunk length.
 
-**What you lose:** semantic recall. TF-IDF misses synonyms and paraphrases. "Earnings" doesn't match "net income" unless both terms appear. A dense embedding model (OpenAI `text-embedding-3-small`, Cohere `embed-v3`) would handle this, at the cost of a vector DB (Pinecone, Weaviate, Postgres pgvector) and embedding API calls.
+**Okapi BM25** (k1=1.5, b=0.75):  
+score(q, d) = Σ\_t [ IDF(t) × tf(t,d)×(k1+1) / (tf(t,d) + k1×(1 − b + b×|d|/avgdl)) ]  
+Non-linear term frequency saturation (extra occurrences give diminishing returns) and document-length normalisation. Standard default in Elasticsearch and Lucene. Generally outperforms TF-IDF on variable-length chunks.
 
-**The right tradeoff depends on the use case.** For a portfolio demo and for interviews, TF-IDF is better because the mechanics are on one page and you can explain every retrieval decision. For production on noisy or multilingual documents, dense retrieval wins.
+Both are lexical -- they match exact tokens. "Earnings" does not match "net income" unless both terms appear. For financial reports where terminology is consistent this is usually fine. Dense embedding retrieval (OpenAI `text-embedding-3-small`, Cohere `embed-v3`) would improve recall on noisy or multilingual documents at the cost of an API dependency and a vector store.
 
 ---
 
@@ -65,14 +70,15 @@ uvicorn app.main:app --reload --port 8003
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | POST | `/api/ingest` | Index a document. Body: `{document_id, text, title}` |
-| POST | `/api/query` | Query an indexed document. Body: `{document_id, query, api_key}` |
+| POST | `/api/query` | Query with generation. Body: `{document_id, query, api_key, retrieval_mode}` where `retrieval_mode` is `"bm25"` (default) or `"tfidf"` |
+| POST | `/api/compare` | Run both TF-IDF and BM25 on the same query, return retrieved passages and agreement rate. No API key required. Body: `{document_id, query}` |
 | GET | `/api/documents` | List all indexed documents with chunk counts |
 | DELETE | `/api/documents/{id}` | Remove a document from the index |
-| GET | `/health` | Health check with indexed document count |
+| GET | `/health` | Health check with indexed doc count and available retrieval modes |
 
 Interactive docs at `http://localhost:8003/docs`.
 
-### Example query
+### Query example
 
 ```bash
 curl -X POST http://localhost:8003/api/query \
@@ -80,19 +86,29 @@ curl -X POST http://localhost:8003/api/query \
   -d '{
     "document_id": "dbs_2023",
     "query": "What was DBS net profit in 2023?",
-    "api_key": "sk-ant-..."
+    "api_key": "sk-ant-...",
+    "retrieval_mode": "bm25"
   }'
 ```
 
-Response:
+### Compare retrieval example (no API key needed)
+
+```bash
+curl -X POST http://localhost:8003/api/compare \
+  -H "Content-Type: application/json" \
+  -d '{"document_id": "dbs_2023", "query": "dividend payout ratio"}'
+```
+
 ```json
 {
-  "answer": "DBS Group reported record net profit of SGD 10.3 billion for the full year 2023...",
-  "retrieved": [
-    {"text": "DBS Group reported record net profit...", "score": 84.2, "index": 0},
-    ...
-  ],
-  "model": "claude-haiku-4-5-20251001"
+  "tfidf": [{"text": "...", "score": 72.1, "index": 4}, ...],
+  "bm25":  [{"text": "...", "score": 100.0, "index": 4}, ...],
+  "agreement": {
+    "shared_chunks": 3,
+    "total_retrieved": 4,
+    "rate": 0.75,
+    "note": "High agreement means both methods rank the same passages..."
+  }
 }
 ```
 
@@ -104,15 +120,15 @@ Response:
 earningsiq/
 ├── backend/
 │   ├── app/
-│   │   ├── main.py              # FastAPI app, auto-ingest startup, endpoints
-│   │   └── services/rag.py      # TF-IDF index, cosine retrieval, Claude generation
+│   │   ├── main.py              # FastAPI app, startup ingest, all endpoints
+│   │   └── services/rag.py      # TFIDFIndex, BM25Index, RAGPipeline
 │   ├── data/
 │   │   ├── dbs_2023.txt         # DBS Group 2023 annual report excerpt
 │   │   └── sia_2023.txt         # Singapore Airlines FY2022/23 report excerpt
 │   ├── requirements.txt
 │   └── Dockerfile
 ├── frontend/
-│   └── index.html               # Chat interface (vanilla JS, no build step)
+│   └── index.html               # Chat interface with BM25/TF-IDF mode toggle (vanilla JS)
 ├── docker-compose.yml
 └── README.md
 ```
@@ -124,8 +140,7 @@ earningsiq/
 The `/api/ingest` endpoint accepts any text. To ingest a real PDF:
 
 ```python
-import httpx
-import pdfplumber
+import httpx, pdfplumber
 
 with pdfplumber.open("report.pdf") as pdf:
     text = "\n".join(page.extract_text() or "" for page in pdf.pages)
@@ -137,4 +152,4 @@ httpx.post("http://localhost:8003/api/ingest", json={
 })
 ```
 
-To upgrade to dense vector retrieval, replace `TFIDFIndex` with a class that calls an embedding API and stores vectors in a NumPy array or Postgres pgvector column. The `RAGPipeline` interface (`.ingest()`, `.query()`) stays the same -- the generation step is independent of the retrieval method.
+To upgrade to dense vector retrieval, replace `BM25Index` with a class that calls an embedding API and stores vectors in a NumPy array or Postgres pgvector column. The `RAGPipeline` interface (`.ingest()`, `.query()`, `.compare_retrieval()`) stays the same.
