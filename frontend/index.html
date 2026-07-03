@@ -225,6 +225,37 @@
     .arch-box strong { color: var(--text); }
     .arch-box code { color: var(--accent); font-family: monospace; font-size: 10px; }
 
+    /* UPLOAD ZONE */
+    .upload-zone {
+      border: 1.5px dashed var(--border);
+      border-radius: 8px;
+      padding: 14px 10px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color .15s, background .15s;
+      position: relative;
+    }
+    .upload-zone:hover, .upload-zone.drag-over {
+      border-color: var(--accent);
+      background: var(--accent-light);
+    }
+    .upload-zone input[type="file"] {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+      width: 100%;
+      height: 100%;
+    }
+    .upload-zone svg { color: var(--muted); transition: color .15s; }
+    .upload-zone:hover svg, .upload-zone.drag-over svg { color: var(--accent); }
+    .upload-label { font-size: 12px; font-weight: 500; color: var(--text); margin-top: 5px; }
+    .upload-sub { font-size: 10px; color: var(--muted); margin-top: 2px; }
+    .upload-status-msg { font-size: 11px; margin-top: 7px; line-height: 1.4; }
+    .upload-status-msg.success { color: var(--accent); }
+    .upload-status-msg.error { color: var(--danger); }
+    .upload-status-msg.loading { color: var(--muted); }
+
     /* MAIN */
     .main {
       display: flex;
@@ -344,22 +375,48 @@
     }
     .retrieved-section summary:hover { color: var(--text); }
 
+    .sources-list { margin-top: 8px; }
+
+    .sources-header {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--muted2);
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      margin-bottom: 6px;
+    }
+
     .passage {
-      background: var(--surface);
+      background: var(--surface2);
       border: 1px solid var(--border);
       border-left: 3px solid var(--accent-border);
-      padding: 10px 12px;
-      margin-top: 6px;
+      padding: 9px 12px;
+      margin-bottom: 5px;
       border-radius: 0 6px 6px 0;
     }
 
     .p-score {
       font-size: 10px;
-      color: var(--accent);
-      font-weight: 600;
+      color: var(--muted);
+      font-weight: 500;
       margin-bottom: 4px;
-      text-transform: uppercase;
-      letter-spacing: .04em;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .p-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 15px;
+      height: 15px;
+      border-radius: 3px;
+      background: var(--accent);
+      color: white;
+      font-size: 9px;
+      font-weight: 700;
+      flex-shrink: 0;
     }
 
     .p-text { font-size: 11px; line-height: 1.65; color: var(--muted); }
@@ -425,6 +482,86 @@
     .send-btn:hover { opacity: .88; }
     .send-btn:disabled { opacity: .4; cursor: not-allowed; }
 
+    /* COMPARE BUTTON */
+    .cmp-btn {
+      padding: 9px 16px;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      font-family: inherit;
+      white-space: nowrap;
+      transition: all .12s;
+    }
+    .cmp-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .cmp-btn:disabled { opacity: .4; cursor: not-allowed; }
+
+    /* COMPARE BLOCK */
+    .compare-block {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+    }
+    .compare-header {
+      padding: 11px 16px;
+      border-bottom: 1px solid var(--border2);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .compare-title { font-size: 12px; font-weight: 600; color: var(--text); }
+    .compare-agreement {
+      font-size: 10px;
+      padding: 3px 8px;
+      border-radius: 20px;
+      font-weight: 500;
+    }
+    .agree-high { background: var(--accent-light); color: var(--accent); border: 1px solid var(--accent-border); }
+    .agree-med { background: #fffbeb; color: #d97706; border: 1px solid #fcd34d; }
+    .agree-low { background: #fef2f2; color: var(--danger); border: 1px solid #fca5a5; }
+    .compare-cols {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+    }
+    .compare-col { padding: 12px; }
+    .compare-col:first-child { border-right: 1px solid var(--border2); }
+    .compare-col-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--muted2);
+      margin-bottom: 8px;
+    }
+    .passage-shared {
+      border-left-color: var(--accent);
+      background: var(--accent-light);
+    }
+    .tag-shared {
+      display: inline-block;
+      font-size: 9px;
+      padding: 1px 5px;
+      border-radius: 3px;
+      background: var(--accent);
+      color: white;
+      font-weight: 700;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      margin-right: 2px;
+    }
+    .compare-note {
+      padding: 9px 16px;
+      font-size: 11px;
+      color: var(--muted);
+      border-top: 1px solid var(--border2);
+      line-height: 1.5;
+    }
+
     @media (max-width: 700px) {
       .layout { grid-template-columns: 1fr; height: auto; }
       aside { height: auto; }
@@ -455,6 +592,21 @@
     <div class="sidebar-section">
       <div class="sidebar-label">Documents</div>
       <div id="doc-list"><div style="color:var(--muted2);font-size:12px">Loading...</div></div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Upload Document</div>
+      <div class="upload-zone" id="upload-zone">
+        <input type="file" id="file-input" accept=".pdf,.txt" />
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+          <polyline points="17 8 12 3 7 8"/>
+          <line x1="12" y1="3" x2="12" y2="15"/>
+        </svg>
+        <div class="upload-label">PDF or TXT</div>
+        <div class="upload-sub">drop here or click to browse</div>
+      </div>
+      <div id="upload-status"></div>
     </div>
 
     <div class="sidebar-section">
@@ -507,7 +659,10 @@
 
     <div class="input-bar">
       <textarea id="q-input" placeholder="Ask a question about the selected document..." rows="1" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
-      <button class="send-btn" id="send-btn" onclick="sendQuery()">Ask</button>
+      <div style="display:flex;gap:6px;flex-shrink:0">
+        <button class="cmp-btn" id="cmp-btn" onclick="sendCompare()" title="Run query on both BM25 and TF-IDF and compare results side by side">Compare</button>
+        <button class="send-btn" id="send-btn" onclick="sendQuery()">Ask</button>
+      </div>
     </div>
   </div>
 </div>
@@ -601,8 +756,17 @@
       });
       const data = await res.json();
       removeThinking(thinkId);
-      if (data.error && !data.answer) appendError(data.error);
-      else appendAnswer(data);
+      if (!res.ok) {
+        const detail = data.detail;
+        const msg = Array.isArray(detail)
+          ? detail.map(d => d.msg || d.type).join(', ')
+          : (typeof detail === 'string' ? detail : `Server error ${res.status}`);
+        appendError(msg);
+      } else if (data.error && !data.answer) {
+        appendError(data.error);
+      } else {
+        appendAnswer(data);
+      }
     } catch (e) {
       removeThinking(thinkId);
       appendError('Could not reach backend: ' + e.message);
@@ -641,10 +805,14 @@
     const div = document.createElement('div');
     div.className = 'message assistant';
 
+    const n = (data.retrieved || []).length;
     const passages = (data.retrieved || []).map((r, i) => `
       <div class="passage">
-        <div class="p-score">Passage ${i + 1} &middot; relevance ${r.score}%</div>
-        <div class="p-text">${esc(r.text.slice(0, 300))}${r.text.length > 300 ? '...' : ''}</div>
+        <div class="p-score">
+          <span class="p-num">${i + 1}</span>
+          relevance ${r.score}%
+        </div>
+        <div class="p-text">${esc(r.text.slice(0, 280))}${r.text.length > 280 ? '...' : ''}</div>
       </div>
     `).join('');
 
@@ -654,13 +822,13 @@
     div.innerHTML = `
       <div class="answer-block">
         <div class="answer-text">${esc(data.answer || '')}</div>
-        <div class="answer-meta">${(data.retrieved || []).length} passages retrieved${modeLabel}${model}</div>
+        <div class="answer-meta">${n} passages retrieved${modeLabel}${model}</div>
       </div>
       ${passages ? `
-        <details class="retrieved-section">
-          <summary>View retrieved passages (${(data.retrieved || []).length})</summary>
+        <div class="sources-list">
+          <div class="sources-header">Sources retrieved</div>
           ${passages}
-        </details>
+        </div>
       ` : ''}
     `;
     chat.appendChild(div);
@@ -684,6 +852,155 @@
       .replace(/\n/g, '<br/>');
   }
 
+  async function sendCompare() {
+    if (loading) return;
+    const q = document.getElementById('q-input').value.trim();
+    if (!q) return;
+    if (!activeDoc) { appendError('Select a document first.'); return; }
+
+    document.getElementById('empty-state')?.remove();
+    document.getElementById('q-input').value = '';
+    document.getElementById('q-input').style.height = '40px';
+
+    appendMessage('user', q);
+    const thinkId = appendThinking();
+    loading = true;
+    document.getElementById('send-btn').disabled = true;
+    document.getElementById('cmp-btn').disabled = true;
+
+    try {
+      const res = await fetch(API + '/api/compare', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: q, document_id: activeDoc }),
+      });
+      const data = await res.json();
+      removeThinking(thinkId);
+      if (!res.ok) appendError(data.detail || `Server error ${res.status}`);
+      else appendCompare(data);
+    } catch (e) {
+      removeThinking(thinkId);
+      appendError('Could not reach backend: ' + e.message);
+    } finally {
+      loading = false;
+      document.getElementById('send-btn').disabled = false;
+      document.getElementById('cmp-btn').disabled = false;
+    }
+  }
+
+  function appendCompare(data) {
+    const chat = document.getElementById('chat');
+    const div = document.createElement('div');
+    div.className = 'message assistant';
+
+    const bm25 = data.bm25 || [];
+    const tfidf = data.tfidf || [];
+    const bm25Idx = new Set(bm25.map(r => r.index));
+    const tfidfIdx = new Set(tfidf.map(r => r.index));
+    const agrPct = Math.round((data.agreement?.rate || 0) * 100);
+    const shared = data.agreement?.shared_chunks || 0;
+    const total = data.agreement?.total_retrieved || 4;
+    const agrClass = agrPct >= 75 ? 'agree-high' : agrPct >= 50 ? 'agree-med' : 'agree-low';
+
+    function renderPassage(r, otherIdx) {
+      const isShared = otherIdx.has(r.index);
+      return `
+        <div class="passage ${isShared ? 'passage-shared' : ''}">
+          <div class="p-score">
+            ${isShared ? '<span class="tag-shared">shared</span>' : ''}
+            score ${r.score}%
+          </div>
+          <div class="p-text">${esc(r.text.slice(0, 200))}${r.text.length > 200 ? '...' : ''}</div>
+        </div>`;
+    }
+
+    div.innerHTML = `
+      <div class="compare-block">
+        <div class="compare-header">
+          <div class="compare-title">BM25 vs TF-IDF Comparison</div>
+          <div class="compare-agreement ${agrClass}">${agrPct}% agreement &middot; ${shared}/${total} shared chunks</div>
+        </div>
+        <div class="compare-cols">
+          <div class="compare-col">
+            <div class="compare-col-label">BM25</div>
+            ${bm25.map(r => renderPassage(r, tfidfIdx)).join('')}
+          </div>
+          <div class="compare-col">
+            <div class="compare-col-label">TF-IDF</div>
+            ${tfidf.map(r => renderPassage(r, bm25Idx)).join('')}
+          </div>
+        </div>
+        <div class="compare-note">${esc(data.agreement?.note || '')}</div>
+      </div>`;
+    chat.appendChild(div);
+    chat.scrollTop = chat.scrollHeight;
+  }
+
+  function initUpload() {
+    const zone = document.getElementById('upload-zone');
+    const input = document.getElementById('file-input');
+
+    zone.addEventListener('dragover', (e) => { e.preventDefault(); zone.classList.add('drag-over'); });
+    zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+    zone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      zone.classList.remove('drag-over');
+      const file = e.dataTransfer.files[0];
+      if (file) handleUpload(file);
+    });
+    input.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) { handleUpload(file); input.value = ''; }
+    });
+  }
+
+  async function handleUpload(file) {
+    const ext = file.name.split('.').pop().toLowerCase();
+    if (!['pdf', 'txt'].includes(ext)) {
+      setUploadStatus('Only .pdf and .txt files supported', 'error');
+      return;
+    }
+    setUploadStatus('Indexing...', 'loading');
+    const fd = new FormData();
+    fd.append('file', file);
+    try {
+      const res = await fetch(API + '/api/upload', { method: 'POST', body: fd });
+      const data = await res.json();
+      if (!res.ok) {
+        setUploadStatus(data.detail || 'Upload failed', 'error');
+        return;
+      }
+      setUploadStatus('Indexed ' + data.chunks + ' chunks', 'success');
+      addDocToList(data);
+    } catch (e) {
+      setUploadStatus('Upload failed: ' + e.message, 'error');
+    }
+  }
+
+  function setUploadStatus(msg, type) {
+    document.getElementById('upload-status').innerHTML =
+      msg ? `<div class="upload-status-msg ${type}">${esc(msg)}</div>` : '';
+  }
+
+  function addDocToList(doc) {
+    document.getElementById('doc-' + doc.document_id)?.remove();
+    const list = document.getElementById('doc-list');
+    const placeholder = list.querySelector('div[style]');
+    if (placeholder) placeholder.remove();
+    const card = document.createElement('div');
+    card.className = 'doc-card';
+    card.id = 'doc-' + doc.document_id;
+    card.innerHTML = `
+      <div class="doc-title">${esc(doc.title)}</div>
+      <div class="doc-meta">${doc.chunks} chunks &middot; ${(doc.chars / 1000).toFixed(1)}k chars</div>
+      <div class="doc-badge">uploaded</div>
+    `;
+    card.onclick = () => selectDoc(doc.document_id, card);
+    list.appendChild(card);
+    selectDoc(doc.document_id, card);
+  }
+
+  initUpload();
   loadDocs();
 </script>
 </body>
