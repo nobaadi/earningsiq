@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>EarningsIQ — Financial Report Q&A</title>
+  <title>EarningsIQ: Financial Report Q&A</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -467,24 +467,18 @@
     </div>
 
     <div class="sidebar-section">
-      <div class="sidebar-label">Anthropic API Key</div>
-      <input class="api-input" type="password" id="api-key" placeholder="sk-ant-api03-..." autocomplete="off" />
-      <div class="key-hint">Sent directly to Claude API. Not stored or logged.</div>
-    </div>
-
-    <div class="sidebar-section">
       <button class="pipeline-btn" onclick="toggleArch()">
         How the pipeline works
         <span style="font-size:10px">&#9660;</span>
       </button>
       <div class="arch-box" id="arch-box">
         <strong>4-step RAG pipeline</strong><br/><br/>
-        <strong>1. Ingest</strong> — text split into 500-word chunks with 80-word overlap<br/>
-        <strong>2. Index</strong> — TF-IDF and BM25 matrices built in memory<br/>
-        <strong>3. Retrieve</strong> — top-4 chunks scored and returned<br/>
-        <strong>4. Generate</strong> — passages sent to <code>claude-haiku-4-5</code><br/><br/>
+        <strong>1. Ingest</strong>: text split into 500-word chunks with 80-word overlap<br/>
+        <strong>2. Index</strong>: TF-IDF and BM25 matrices built in memory<br/>
+        <strong>3. Retrieve</strong>: top-4 chunks scored and returned<br/>
+        <strong>4. Generate</strong>: passages sent to <code>gemini-2.0-flash</code><br/><br/>
         <strong>TF-IDF vs BM25</strong><br/>
-        TF-IDF uses cosine similarity on term-frequency vectors. BM25 adds saturation and length normalisation — the default in production search engines.
+        TF-IDF uses cosine similarity on term-frequency vectors. BM25 adds saturation and length normalisation, the default in production search engines.
       </div>
     </div>
   </aside>
@@ -587,11 +581,8 @@
   async function sendQuery() {
     if (loading) return;
     const q = document.getElementById('q-input').value.trim();
-    const key = document.getElementById('api-key').value.trim();
     if (!q) return;
     if (!activeDoc) { appendError('Select a document first.'); return; }
-    if (!key) { appendError('Enter your Anthropic API key.'); return; }
-    if (!key.startsWith('sk-ant-')) { appendError('API key must start with sk-ant-'); return; }
 
     document.getElementById('empty-state')?.remove();
     document.getElementById('q-input').value = '';
@@ -606,7 +597,7 @@
       const res = await fetch(API + '/api/query', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query: q, api_key: key, document_id: activeDoc, retrieval_mode: retrievalMode }),
+        body: JSON.stringify({ query: q, document_id: activeDoc, retrieval_mode: retrievalMode }),
       });
       const data = await res.json();
       removeThinking(thinkId);
