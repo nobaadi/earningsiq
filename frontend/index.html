@@ -225,6 +225,22 @@
     .arch-box strong { color: var(--text); }
     .arch-box code { color: var(--accent); font-family: monospace; font-size: 10px; }
 
+    /* SIDEBAR SUGGESTIONS */
+    .sidebar-suggestion {
+      padding: 7px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      color: var(--muted);
+      cursor: pointer;
+      transition: background .1s, color .1s;
+      line-height: 1.4;
+      margin-bottom: 2px;
+    }
+    .sidebar-suggestion:hover {
+      background: var(--accent-light);
+      color: var(--accent);
+    }
+
     /* UPLOAD ZONE */
     .upload-zone {
       border: 1.5px dashed var(--border);
@@ -619,6 +635,17 @@
     </div>
 
     <div class="sidebar-section">
+      <div class="sidebar-label">Try asking</div>
+      <div id="sidebar-suggestions">
+        <div class="sidebar-suggestion" onclick="useSuggestion(this)">What drove revenue growth this year?</div>
+        <div class="sidebar-suggestion" onclick="useSuggestion(this)">What are the key risks the company faces?</div>
+        <div class="sidebar-suggestion" onclick="useSuggestion(this)">How is the company approaching sustainability?</div>
+        <div class="sidebar-suggestion" onclick="useSuggestion(this)">Compare performance across business segments</div>
+        <div class="sidebar-suggestion" onclick="useSuggestion(this)">What is management's outlook for next year?</div>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
       <button class="pipeline-btn" onclick="toggleArch()">
         How the pipeline works
         <span style="font-size:10px">&#9660;</span>
@@ -628,7 +655,7 @@
         <strong>1. Ingest</strong>: text split into 500-word chunks with 80-word overlap<br/>
         <strong>2. Index</strong>: TF-IDF and BM25 matrices built in memory<br/>
         <strong>3. Retrieve</strong>: top-4 chunks scored and returned<br/>
-        <strong>4. Generate</strong>: passages sent to <code>gemini-1.5-flash</code><br/><br/>
+        <strong>4. Generate</strong>: passages sent to <code>gemini-2.0-flash-lite</code><br/><br/>
         <strong>TF-IDF vs BM25</strong><br/>
         TF-IDF uses cosine similarity on term-frequency vectors. BM25 adds saturation and length normalisation, the default in production search engines.
       </div>
@@ -648,11 +675,11 @@
         <h3>Ask a question about an annual report</h3>
         <p>Select a document and ask any question. The pipeline retrieves the most relevant passages and uses Gemini to generate a grounded answer.</p>
         <div class="suggested" id="suggestions">
-          <div class="suggestion" onclick="useSuggestion(this)">What was the net profit?</div>
-          <div class="suggestion" onclick="useSuggestion(this)">How did revenue change year-on-year?</div>
-          <div class="suggestion" onclick="useSuggestion(this)">What are the key risk factors?</div>
-          <div class="suggestion" onclick="useSuggestion(this)">What dividend was declared?</div>
-          <div class="suggestion" onclick="useSuggestion(this)">Describe the sustainability commitments</div>
+          <div class="suggestion" onclick="useSuggestion(this)">What drove revenue growth this year?</div>
+          <div class="suggestion" onclick="useSuggestion(this)">What are the key risks the company faces?</div>
+          <div class="suggestion" onclick="useSuggestion(this)">How is the company approaching sustainability?</div>
+          <div class="suggestion" onclick="useSuggestion(this)">Compare performance across business segments</div>
+          <div class="suggestion" onclick="useSuggestion(this)">What is management's outlook for next year?</div>
         </div>
       </div>
     </div>
@@ -689,7 +716,7 @@
   }
 
   function useSuggestion(el) {
-    document.getElementById('q-input').value = el.textContent;
+    document.getElementById('q-input').value = el.textContent.trim();
     sendQuery();
   }
 
