@@ -25,6 +25,7 @@ Generation:
   answer and is instructed to cite passage numbers explicitly.
 """
 
+import os
 import re
 import math
 import logging
@@ -254,7 +255,6 @@ class RAGPipeline:
         self,
         doc_id: str,
         question: str,
-        api_key: str,
         retrieval_mode: str = "bm25",
     ) -> dict:
         if doc_id not in self._tfidf:
@@ -265,6 +265,10 @@ class RAGPipeline:
 
         if not retrieved:
             return {"answer": "No relevant passages found.", "retrieved": [], "retrieval_mode": retrieval_mode}
+
+        api_key = os.environ.get("GEMINI_API_KEY", "")
+        if not api_key:
+            return {"error": "GEMINI_API_KEY not set on server.", "answer": None, "retrieved": retrieved}
 
         context = "\n\n---\n\n".join(
             f"[Passage {i + 1}]\n{r['text']}" for i, r in enumerate(retrieved)
@@ -279,33 +283,29 @@ class RAGPipeline:
 
         async with httpx.AsyncClient(timeout=30.0) as client:
             resp = await client.post(
-                "https://api.anthropic.com/v1/messages",
-                headers={
-                    "x-api-key": api_key,
-                    "anthropic-version": "2023-06-01",
-                    "content-type": "application/json",
-                },
-                json={
-                    "model": "claude-haiku-4-5-20251001",
-                    "max_tokens": 800,
-                    "messages": [{"role": "user", "content": prompt}],
-                },
+                f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={api_key}",
+                headers={"Content-Type": "application/json"},
+                json={"contents": [{"parts": [{"text": prompt}]}]},
             )
 
         if resp.status_code != 200:
-            logger.warning("Claude API error %d: %s", resp.status_code, resp.text[:200])
+            logger.warning("Gemini API error %d: %s", resp.status_code, resp.text[:200])
             return {
-                "error": f"Claude API returned {resp.status_code}",
+                "error": f"Gemini API returned {resp.status_code}",
                 "answer": None,
                 "retrieved": retrieved,
                 "retrieval_mode": retrieval_mode,
             }
 
         data = resp.json()
-        answer = data["content"][0]["text"] if data.get("content") else "No response"
+        answer = (
+            data["candidates"][0]["content"]["parts"][0]["text"]
+            if data.get("candidates")
+            else "No response"
+        )
         return {
             "answer": answer,
             "retrieved": retrieved,
             "retrieval_mode": retrieval_mode,
-            "model": "claude-haiku-4-5-20251001",
+            "model": "gemini-2.0-flash",
         }
