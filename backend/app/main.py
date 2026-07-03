@@ -1,9 +1,11 @@
+import io
 import logging
 import os
+import re as _re
 from pathlib import Path
 from typing import Literal
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
@@ -51,7 +53,6 @@ async def startup():
 
 class QueryRequest(BaseModel):
     query: str
-    api_key: str
     document_id: str
     retrieval_mode: Literal["tfidf", "bm25"] = "bm25"
 
@@ -67,6 +68,46 @@ class IngestRequest(BaseModel):
     title: str
 
 
+@app.post("/api/upload")
+async def upload_document(
+    file: UploadFile = File(...),
+    title: str = Form(default=None),
+):
+    filename = file.filename or "document"
+    content = await file.read()
+    ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else ""
+
+    if ext == "pdf":
+        try:
+            from pypdf import PdfReader
+            reader = PdfReader(io.BytesIO(content))
+            pages = [page.extract_text() or "" for page in reader.pages]
+            text = "\n\n".join(p.strip() for p in pages if p.strip())
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=f"Could not parse PDF: {e}")
+    elif ext == "txt":
+        text = content.decode("utf-8", errors="replace")
+    else:
+        raise HTTPException(status_code=400, detail="Only .pdf and .txt files are supported")
+
+    text = text.strip()
+    if not text:
+        raise HTTPException(status_code=400, detail="No text could be extracted from the file")
+
+    stem = filename.rsplit(".", 1)[0]
+    doc_id = _re.sub(r"[^a-z0-9]+", "_", stem.lower()).strip("_") or "upload"
+    doc_title = title or stem.replace("_", " ").replace("-", " ")
+
+    chunk_count = rag.ingest(doc_id, text, doc_title)
+    return {
+        "document_id": doc_id,
+        "title": doc_title,
+        "chunks": chunk_count,
+        "chars": len(text),
+        "status": "indexed",
+    }
+
+
 @app.post("/api/ingest")
 async def ingest_document(req: IngestRequest):
     chunk_count = rag.ingest(req.document_id, req.text, req.title)
@@ -75,12 +116,7 @@ async def ingest_document(req: IngestRequest):
 
 @app.post("/api/query")
 async def query_document(req: QueryRequest):
-    if not req.api_key.startswith("sk-ant-"):
-        raise HTTPException(
-            status_code=400,
-            detail="Invalid Anthropic API key format (must start with sk-ant-)",
-        )
-    result = await rag.query(req.document_id, req.query, req.api_key, req.retrieval_mode)
+    result = await rag.query(req.document_id, req.query, req.retrieval_mode)
     return result
 
 
