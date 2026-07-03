@@ -3,100 +3,419 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>EarningsIQ - Financial Report Q&A</title>
+  <title>EarningsIQ — Financial Report Q&A</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
     :root {
-      --bg: #0e1016;
-      --surface: #161a22;
-      --surface2: #1d2230;
-      --border: #272b38;
+      --bg: #f5f5f5;
+      --surface: #ffffff;
+      --surface2: #f9fafb;
+      --border: #e4e4e7;
+      --border2: #f0f0f0;
       --accent: #10b981;
-      --accent2: #38bdf8;
-      --text: #e2e8f0;
-      --muted: #8892a4;
-      --danger: #f87171;
-      --warn: #fbbf24;
+      --accent-light: #ecfdf5;
+      --accent-border: #6ee7b7;
+      --text: #18181b;
+      --muted: #71717a;
+      --muted2: #a1a1aa;
+      --danger: #ef4444;
+      --danger-bg: #fef2f2;
+      --shadow-sm: 0 1px 2px rgba(0,0,0,.05);
+      --shadow: 0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.04);
     }
-    body { background: var(--bg); color: var(--text); font-family: 'Inter', system-ui, sans-serif; font-size: 14px; min-height: 100vh; }
 
-    header { padding: 20px 32px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 16px; }
-    header h1 { font-size: 18px; font-weight: 600; }
-    header p { font-size: 13px; color: var(--muted); margin-top: 2px; }
-    .badge { font-size: 11px; padding: 3px 9px; border-radius: 4px; background: #0c2218; color: var(--accent); border: 1px solid #14532d; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', system-ui, sans-serif;
+      font-size: 14px;
+      min-height: 100vh;
+    }
 
-    .layout { display: grid; grid-template-columns: 280px 1fr; min-height: calc(100vh - 65px); }
+    /* HEADER */
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 28px;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
 
-    /* Sidebar */
-    aside { border-right: 1px solid var(--border); padding: 20px 16px; }
-    aside h2 { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 12px; }
-    .doc-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; margin-bottom: 8px; cursor: pointer; transition: border-color .15s; }
-    .doc-card:hover { border-color: var(--accent); }
-    .doc-card.active { border-color: var(--accent); background: #0c2218; }
-    .doc-card .doc-title { font-size: 13px; font-weight: 500; margin-bottom: 4px; }
+    .header-left { display: flex; align-items: center; gap: 10px; }
+
+    .logo-mark {
+      width: 28px; height: 28px;
+      border-radius: 6px;
+      background: var(--accent);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+
+    header h1 { font-size: 14px; font-weight: 600; letter-spacing: -.01em; }
+    header .subtitle { font-size: 11px; color: var(--muted); margin-left: 4px; }
+
+    .badge {
+      font-size: 10px;
+      padding: 2px 8px;
+      border-radius: 3px;
+      background: var(--accent-light);
+      color: var(--accent);
+      border: 1px solid var(--accent-border);
+      font-weight: 500;
+      letter-spacing: .04em;
+    }
+
+    /* LAYOUT */
+    .layout {
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      height: calc(100vh - 52px);
+    }
+
+    /* SIDEBAR */
+    aside {
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+    }
+
+    .sidebar-section {
+      padding: 16px;
+      border-bottom: 1px solid var(--border2);
+    }
+
+    .sidebar-label {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--muted2);
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      margin-bottom: 10px;
+    }
+
+    .doc-card {
+      padding: 10px 12px;
+      border-radius: 7px;
+      margin-bottom: 4px;
+      cursor: pointer;
+      transition: background .12s;
+      border: 1px solid transparent;
+    }
+    .doc-card:hover { background: var(--surface2); }
+    .doc-card.active {
+      background: var(--accent-light);
+      border-color: var(--accent-border);
+    }
+    .doc-card .doc-title { font-size: 12px; font-weight: 500; color: var(--text); margin-bottom: 3px; }
     .doc-card .doc-meta { font-size: 11px; color: var(--muted); }
-    .doc-card .doc-badge { display: inline-block; margin-top: 6px; font-size: 10px; padding: 2px 7px; border-radius: 3px; background: #0c1e2a; color: var(--accent2); }
-
-    .api-section { margin-top: 20px; }
-    .api-section label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 6px; text-transform: uppercase; letter-spacing: .05em; }
-    input[type=password], input[type=text] {
-      width: 100%; background: var(--surface); border: 1px solid var(--border);
-      color: var(--text); padding: 8px 10px; border-radius: 6px; font-size: 12px; font-family: monospace; outline: none;
+    .doc-card .doc-badge {
+      display: inline-block;
+      margin-top: 5px;
+      font-size: 9px;
+      padding: 2px 6px;
+      border-radius: 3px;
+      background: var(--surface2);
+      color: var(--muted);
+      border: 1px solid var(--border);
+      font-weight: 500;
+      letter-spacing: .04em;
+      text-transform: uppercase;
     }
-    input:focus { border-color: var(--accent); }
-    .key-hint { font-size: 10px; color: var(--muted); margin-top: 4px; }
+    .doc-card.active .doc-badge {
+      background: var(--accent-light);
+      color: var(--accent);
+      border-color: var(--accent-border);
+    }
 
-    .arch-toggle { margin-top: 20px; }
-    .arch-toggle button { width: 100%; background: none; border: 1px solid var(--border); color: var(--muted); padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; text-align: left; }
-    .arch-toggle button:hover { border-color: var(--accent); color: var(--text); }
-    .arch-box { display: none; margin-top: 8px; background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 12px; font-size: 11px; color: var(--muted); line-height: 1.6; }
+    /* MODE TOGGLE */
+    .mode-toggle {
+      display: flex;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: 3px;
+      gap: 2px;
+    }
+
+    .mode-btn {
+      flex: 1;
+      padding: 5px 10px;
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: 500;
+      font-family: inherit;
+      transition: all .12s;
+    }
+    .mode-btn.active {
+      background: var(--surface);
+      color: var(--text);
+      box-shadow: var(--shadow-sm);
+    }
+    .mode-btn:hover:not(.active) { color: var(--text); }
+
+    .mode-hint {
+      font-size: 10px;
+      color: var(--muted);
+      line-height: 1.6;
+      margin-top: 8px;
+    }
+
+    /* API KEY INPUT */
+    .api-input {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 8px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-family: monospace;
+      outline: none;
+      transition: border-color .12s;
+    }
+    .api-input:focus { border-color: var(--accent); background: var(--surface); }
+
+    .key-hint { font-size: 10px; color: var(--muted2); margin-top: 4px; line-height: 1.5; }
+
+    /* PIPELINE TOGGLE */
+    .pipeline-btn {
+      width: 100%;
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 7px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 12px;
+      font-family: inherit;
+      text-align: left;
+      transition: border-color .12s, color .12s;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .pipeline-btn:hover { border-color: var(--accent); color: var(--text); }
+
+    .arch-box {
+      display: none;
+      margin-top: 8px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 12px;
+      font-size: 11px;
+      color: var(--muted);
+      line-height: 1.7;
+    }
     .arch-box.open { display: block; }
-    .arch-box code { color: var(--accent2); font-family: monospace; font-size: 10px; }
-    .mode-btn { flex: 1; padding: 6px 10px; background: var(--surface); border: 1px solid var(--border); color: var(--muted); border-radius: 5px; cursor: pointer; font-size: 11px; font-weight: 500; transition: all .15s; }
-    .mode-btn.active { background: #0c2218; border-color: var(--accent); color: var(--accent); }
-    .mode-btn:hover:not(.active) { border-color: var(--accent); color: var(--text); }
+    .arch-box strong { color: var(--text); }
+    .arch-box code { color: var(--accent); font-family: monospace; font-size: 10px; }
 
-    /* Main chat area */
-    .main { display: flex; flex-direction: column; }
-    .chat-area { flex: 1; padding: 24px 32px; overflow-y: auto; max-height: calc(100vh - 200px); }
+    /* MAIN */
+    .main {
+      display: flex;
+      flex-direction: column;
+      background: var(--bg);
+      overflow: hidden;
+    }
 
-    .empty-state { text-align: center; padding: 60px 20px; color: var(--muted); }
-    .empty-state h3 { font-size: 15px; color: var(--text); margin-bottom: 8px; }
-    .empty-state p { font-size: 13px; line-height: 1.6; max-width: 420px; margin: 0 auto 24px; }
-    .suggested { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
-    .suggestion { padding: 8px 14px; background: var(--surface); border: 1px solid var(--border); border-radius: 20px; font-size: 12px; cursor: pointer; transition: border-color .15s; }
+    .chat-area {
+      flex: 1;
+      padding: 24px 32px;
+      overflow-y: auto;
+    }
+
+    /* EMPTY STATE */
+    .empty-state {
+      max-width: 480px;
+      margin: 48px auto 0;
+      text-align: center;
+    }
+
+    .empty-icon {
+      width: 40px; height: 40px;
+      border-radius: 10px;
+      background: var(--accent-light);
+      border: 1px solid var(--accent-border);
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 16px;
+    }
+
+    .empty-state h3 {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+
+    .empty-state p {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.65;
+      margin-bottom: 20px;
+    }
+
+    .suggested { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
+
+    .suggestion {
+      padding: 6px 12px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      font-size: 12px;
+      color: var(--muted);
+      cursor: pointer;
+      transition: border-color .12s, color .12s;
+    }
     .suggestion:hover { border-color: var(--accent); color: var(--accent); }
 
-    .message { margin-bottom: 24px; }
+    /* MESSAGES */
+    .message { margin-bottom: 20px; }
+
     .message.user { display: flex; justify-content: flex-end; }
-    .message.user .bubble { background: var(--accent); color: white; padding: 10px 14px; border-radius: 12px 12px 2px 12px; max-width: 60%; font-size: 13px; line-height: 1.5; }
-    .message.assistant { display: flex; flex-direction: column; gap: 10px; }
-    .answer-block { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px; }
-    .answer-block .answer-text { font-size: 13px; line-height: 1.7; white-space: pre-wrap; }
-    .answer-block .answer-meta { margin-top: 10px; font-size: 11px; color: var(--muted); }
-    .retrieved-section { font-size: 11px; color: var(--muted); margin-top: 8px; }
-    .retrieved-section summary { cursor: pointer; padding: 6px 0; }
+
+    .bubble {
+      background: var(--accent);
+      color: white;
+      padding: 9px 14px;
+      border-radius: 16px 16px 3px 16px;
+      max-width: 60%;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .message.assistant { display: flex; flex-direction: column; gap: 8px; }
+
+    .answer-block {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .answer-text {
+      font-size: 13px;
+      line-height: 1.75;
+      color: var(--text);
+      white-space: pre-wrap;
+    }
+
+    .answer-meta {
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid var(--border2);
+      font-size: 11px;
+      color: var(--muted2);
+    }
+
+    .retrieved-section {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .retrieved-section summary {
+      cursor: pointer;
+      padding: 5px 0;
+      color: var(--muted);
+      user-select: none;
+    }
     .retrieved-section summary:hover { color: var(--text); }
-    .passage { background: var(--surface2); border-left: 2px solid var(--border); padding: 10px 12px; margin-top: 8px; border-radius: 0 6px 6px 0; }
-    .passage .p-score { font-size: 10px; color: var(--accent2); font-weight: 600; margin-bottom: 4px; }
-    .passage .p-text { font-size: 11px; line-height: 1.6; color: var(--muted); }
-    .error-msg { background: #2a1a1a; border: 1px solid #4a2020; color: var(--danger); padding: 12px 14px; border-radius: 8px; font-size: 13px; }
-    .thinking { color: var(--muted); font-size: 13px; padding: 8px 0; }
+
+    .passage {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent-border);
+      padding: 10px 12px;
+      margin-top: 6px;
+      border-radius: 0 6px 6px 0;
+    }
+
+    .p-score {
+      font-size: 10px;
+      color: var(--accent);
+      font-weight: 600;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+
+    .p-text { font-size: 11px; line-height: 1.65; color: var(--muted); }
+
+    .error-msg {
+      background: var(--danger-bg);
+      border: 1px solid #fca5a5;
+      color: var(--danger);
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+    }
+
+    .thinking {
+      color: var(--muted);
+      font-size: 13px;
+      padding: 6px 0;
+    }
     .thinking::after { content: '...'; animation: dots 1.2s infinite; }
     @keyframes dots { 0%,20% { content: '.'; } 40%,60% { content: '..'; } 80%,100% { content: '...'; } }
 
-    .input-bar { border-top: 1px solid var(--border); padding: 16px 32px; display: flex; gap: 10px; }
-    .input-bar textarea { flex: 1; background: var(--surface); border: 1px solid var(--border); color: var(--text); padding: 10px 14px; border-radius: 8px; font-size: 13px; font-family: inherit; resize: none; height: 44px; max-height: 120px; outline: none; overflow: hidden; }
-    .input-bar textarea:focus { border-color: var(--accent); }
-    .send-btn { padding: 0 20px; background: var(--accent); border: none; color: white; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 500; white-space: nowrap; }
+    /* INPUT BAR */
+    .input-bar {
+      border-top: 1px solid var(--border);
+      padding: 14px 28px;
+      background: var(--surface);
+      display: flex;
+      gap: 10px;
+      align-items: flex-end;
+    }
+
+    .input-bar textarea {
+      flex: 1;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 9px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-family: inherit;
+      resize: none;
+      height: 40px;
+      max-height: 120px;
+      outline: none;
+      transition: border-color .12s;
+    }
+    .input-bar textarea:focus { border-color: var(--accent); background: var(--surface); }
+    .input-bar textarea::placeholder { color: var(--muted2); }
+
+    .send-btn {
+      padding: 9px 20px;
+      background: var(--accent);
+      border: none;
+      color: white;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      font-family: inherit;
+      white-space: nowrap;
+      transition: opacity .12s;
+    }
     .send-btn:hover { opacity: .88; }
     .send-btn:disabled { opacity: .4; cursor: not-allowed; }
 
     @media (max-width: 700px) {
-      .layout { grid-template-columns: 1fr; }
-      aside { border-right: none; border-bottom: 1px solid var(--border); }
-      header { padding: 14px 16px; }
+      .layout { grid-template-columns: 1fr; height: auto; }
+      aside { height: auto; }
       .chat-area { padding: 16px; }
       .input-bar { padding: 12px 16px; }
     }
@@ -105,48 +424,55 @@
 <body>
 
 <header>
-  <div style="display:flex;align-items:center;gap:14px;">
-    <div style="width:36px;height:36px;border-radius:10px;background:var(--accent);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-      <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M3 2.5h9l3 3V15.5H3V2.5z" stroke="white" stroke-width="1.5" stroke-linejoin="round"/><path d="M12 2.5v3h3" stroke="white" stroke-width="1.5" stroke-linejoin="round"/><path d="M6 8h6M6 11h4" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>
+  <div class="header-left">
+    <div class="logo-mark">
+      <svg width="15" height="15" viewBox="0 0 18 18" fill="none">
+        <path d="M3 2.5h9l3 3V15.5H3V2.5z" stroke="white" stroke-width="1.5" stroke-linejoin="round"/>
+        <path d="M12 2.5v3h3" stroke="white" stroke-width="1.5" stroke-linejoin="round"/>
+        <path d="M6 8h6M6 11h4" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
     </div>
-    <div>
-      <h1>EarningsIQ</h1>
-      <p>Ask questions about annual reports &middot; BM25 + TF-IDF retrieval &middot; Claude generation</p>
-    </div>
+    <h1>EarningsIQ</h1>
+    <span class="subtitle" style="display:none">Financial Report Q&A</span>
   </div>
   <span class="badge">RAG</span>
 </header>
 
 <div class="layout">
   <aside>
-    <h2>Documents</h2>
-    <div id="doc-list"><div style="color:var(--muted);font-size:12px">Loading...</div></div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Documents</div>
+      <div id="doc-list"><div style="color:var(--muted2);font-size:12px">Loading...</div></div>
+    </div>
 
-    <div class="api-section" style="margin-top:20px;">
-      <label>Retrieval Mode</label>
-      <div style="display:flex;gap:6px;margin-bottom:8px;">
+    <div class="sidebar-section">
+      <div class="sidebar-label">Retrieval Mode</div>
+      <div class="mode-toggle">
         <button class="mode-btn active" id="mode-bm25" onclick="setMode('bm25')">BM25</button>
         <button class="mode-btn" id="mode-tfidf" onclick="setMode('tfidf')">TF-IDF</button>
       </div>
-      <div id="mode-hint" style="font-size:10px;color:var(--muted);line-height:1.5;">BM25 is the default. Saturates repeated terms and normalises for chunk length. TF-IDF uses cosine similarity on raw term-frequency vectors.</div>
+      <div class="mode-hint" id="mode-hint">BM25 saturates repeated terms and normalises for chunk length. Default in Elasticsearch and Lucene.</div>
     </div>
 
-    <div class="api-section">
-      <label>Anthropic API Key</label>
-      <input type="password" id="api-key" placeholder="sk-ant-api03-..." autocomplete="off" />
-      <div class="key-hint">Key is sent directly to Claude API. Not stored or logged.</div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Anthropic API Key</div>
+      <input class="api-input" type="password" id="api-key" placeholder="sk-ant-api03-..." autocomplete="off" />
+      <div class="key-hint">Sent directly to Claude API. Not stored or logged.</div>
     </div>
 
-    <div class="arch-toggle">
-      <button onclick="toggleArch()">How the pipeline works</button>
+    <div class="sidebar-section">
+      <button class="pipeline-btn" onclick="toggleArch()">
+        How the pipeline works
+        <span style="font-size:10px">&#9660;</span>
+      </button>
       <div class="arch-box" id="arch-box">
-        <strong style="color:var(--text)">4-step RAG pipeline:</strong><br/><br/>
-        <strong>1. Ingest</strong> -- text split into 500-word chunks with 80-word overlap<br/>
-        <strong>2. Index</strong> -- TF-IDF and BM25 matrices built in memory; no vector DB<br/>
-        <strong>3. Retrieve</strong> -- selected method scores chunks; top-4 returned with relevance scores<br/>
-        <strong>4. Generate</strong> -- passages sent to <code>claude-haiku-4-5</code>; grounded answer returned<br/><br/>
-        <strong style="color:var(--text)">TF-IDF vs BM25</strong><br/>
-        TF-IDF: cosine similarity on normalised term-frequency vectors. BM25: adds term saturation (repeated terms give diminishing returns) and length normalisation. BM25 is the default in Elasticsearch and Lucene. Use /api/compare to see how the two differ on your query.
+        <strong>4-step RAG pipeline</strong><br/><br/>
+        <strong>1. Ingest</strong> — text split into 500-word chunks with 80-word overlap<br/>
+        <strong>2. Index</strong> — TF-IDF and BM25 matrices built in memory<br/>
+        <strong>3. Retrieve</strong> — top-4 chunks scored and returned<br/>
+        <strong>4. Generate</strong> — passages sent to <code>claude-haiku-4-5</code><br/><br/>
+        <strong>TF-IDF vs BM25</strong><br/>
+        TF-IDF uses cosine similarity on term-frequency vectors. BM25 adds saturation and length normalisation — the default in production search engines.
       </div>
     </div>
   </aside>
@@ -154,8 +480,15 @@
   <div class="main">
     <div class="chat-area" id="chat">
       <div class="empty-state" id="empty-state">
+        <div class="empty-icon">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+            <path d="M3 2.5h9l3 3V15.5H3V2.5z" stroke="#10b981" stroke-width="1.5" stroke-linejoin="round"/>
+            <path d="M12 2.5v3h3" stroke="#10b981" stroke-width="1.5" stroke-linejoin="round"/>
+            <path d="M6 8h6M6 11h4" stroke="#10b981" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </div>
         <h3>Ask a question about an annual report</h3>
-        <p>Select a document on the left, enter your Anthropic API key, then ask any question. The pipeline retrieves the most relevant passages from the report and uses Claude to generate a grounded answer.</p>
+        <p>Select a document, enter your Anthropic API key, then ask any question. The pipeline retrieves the most relevant passages and uses Claude to generate a grounded answer.</p>
         <div class="suggested" id="suggestions">
           <div class="suggestion" onclick="useSuggestion(this)">What was the net profit?</div>
           <div class="suggestion" onclick="useSuggestion(this)">How did revenue change year-on-year?</div>
@@ -165,6 +498,7 @@
         </div>
       </div>
     </div>
+
     <div class="input-bar">
       <textarea id="q-input" placeholder="Ask a question about the selected document..." rows="1" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
       <button class="send-btn" id="send-btn" onclick="sendQuery()">Ask</button>
@@ -183,8 +517,8 @@
     document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
     document.getElementById('mode-' + mode).classList.add('active');
     const hints = {
-      bm25: 'BM25 is the default. Saturates repeated terms and normalises for chunk length. Standard in Elasticsearch and Lucene.',
-      tfidf: 'TF-IDF: cosine similarity on normalised term-frequency vectors. Fully explainable -- every score is a deterministic dot product.',
+      bm25: 'BM25 saturates repeated terms and normalises for chunk length. Default in Elasticsearch and Lucene.',
+      tfidf: 'TF-IDF uses cosine similarity on normalised term-frequency vectors. Fully deterministic and explainable.',
     };
     document.getElementById('mode-hint').textContent = hints[mode];
   }
@@ -214,7 +548,7 @@
       const docs = data.documents || [];
       if (!docs.length) {
         document.getElementById('doc-list').innerHTML =
-          '<div style="color:var(--danger);font-size:12px">Backend not running. Start with: docker compose up --build</div>';
+          '<div style="color:var(--danger);font-size:12px">No documents found.</div>';
         return;
       }
       document.getElementById('doc-list').innerHTML = docs.map(d => `
@@ -224,12 +558,11 @@
           <div class="doc-badge">pre-indexed</div>
         </div>
       `).join('');
-      // Auto-select first
       const first = docs[0];
       selectDoc(first.id, document.getElementById('doc-' + first.id));
     } catch (e) {
       document.getElementById('doc-list').innerHTML =
-        `<div style="color:var(--danger);font-size:12px">Could not reach backend at ${API}.<br/>Run: <code style="font-size:10px">docker compose up --build</code></div>`;
+        `<div style="color:var(--danger);font-size:12px">Could not reach backend.</div>`;
     }
   }
 
@@ -250,7 +583,7 @@
 
     document.getElementById('empty-state')?.remove();
     document.getElementById('q-input').value = '';
-    document.getElementById('q-input').style.height = '44px';
+    document.getElementById('q-input').style.height = '40px';
 
     appendMessage('user', q);
     const thinkId = appendThinking();
@@ -265,12 +598,8 @@
       });
       const data = await res.json();
       removeThinking(thinkId);
-
-      if (data.error && !data.answer) {
-        appendError(data.error);
-      } else {
-        appendAnswer(data);
-      }
+      if (data.error && !data.answer) appendError(data.error);
+      else appendAnswer(data);
     } catch (e) {
       removeThinking(thinkId);
       appendError('Could not reach backend: ' + e.message);
@@ -284,9 +613,7 @@
     const chat = document.getElementById('chat');
     const div = document.createElement('div');
     div.className = 'message ' + role;
-    if (role === 'user') {
-      div.innerHTML = `<div class="bubble">${esc(text)}</div>`;
-    }
+    if (role === 'user') div.innerHTML = `<div class="bubble">${esc(text)}</div>`;
     chat.appendChild(div);
     chat.scrollTop = chat.scrollHeight;
     return div;
@@ -304,9 +631,7 @@
     return id;
   }
 
-  function removeThinking(id) {
-    document.getElementById(id)?.remove();
-  }
+  function removeThinking(id) { document.getElementById(id)?.remove(); }
 
   function appendAnswer(data) {
     const chat = document.getElementById('chat');
@@ -321,7 +646,7 @@
     `).join('');
 
     const model = data.model ? ` &middot; ${data.model}` : '';
-    const modeLabel = data.retrieval_mode ? ` &middot; retrieval: ${data.retrieval_mode.toUpperCase()}` : '';
+    const modeLabel = data.retrieval_mode ? ` &middot; ${data.retrieval_mode.toUpperCase()}` : '';
 
     div.innerHTML = `
       <div class="answer-block">
@@ -330,7 +655,7 @@
       </div>
       ${passages ? `
         <details class="retrieved-section">
-          <summary>Retrieved passages (${(data.retrieved || []).length})</summary>
+          <summary>View retrieved passages (${(data.retrieved || []).length})</summary>
           ${passages}
         </details>
       ` : ''}
