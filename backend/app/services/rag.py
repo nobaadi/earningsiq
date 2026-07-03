@@ -25,6 +25,7 @@ Generation:
   answer and is instructed to cite passage numbers explicitly.
 """
 
+import asyncio
 import os
 import re
 import math
@@ -281,12 +282,16 @@ class RAGPipeline:
             f"QUESTION: {question}\n\nANSWER:"
         )
 
-        async with httpx.AsyncClient(timeout=30.0) as client:
-            resp = await client.post(
-                f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key={api_key}",
-                headers={"Content-Type": "application/json"},
-                json={"contents": [{"parts": [{"text": prompt}]}]},
-            )
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key={api_key}"
+        payload = {"contents": [{"parts": [{"text": prompt}]}]}
+        resp = None
+        for attempt in range(3):
+            async with httpx.AsyncClient(timeout=40.0) as client:
+                resp = await client.post(url, headers={"Content-Type": "application/json"}, json=payload)
+            if resp.status_code == 429 and attempt < 2:
+                await asyncio.sleep(6)
+                continue
+            break
 
         if resp.status_code != 200:
             logger.warning("Gemini API error %d: %s", resp.status_code, resp.text[:200])
