@@ -272,9 +272,9 @@ class RAGPipeline:
         if not retrieved:
             return {"answer": "No relevant passages found.", "retrieved": [], "retrieval_mode": retrieval_mode}
 
-        api_key = os.environ.get("GEMINI_API_KEY", "")
+        api_key = os.environ.get("GROQ_API_KEY", "")
         if not api_key:
-            return {"error": "GEMINI_API_KEY not set on server.", "answer": None, "retrieved": retrieved}
+            return {"error": "GROQ_API_KEY not set on server.", "answer": None, "retrieved": retrieved}
 
         context = "\n\n---\n\n".join(
             f"[Passage {i + 1}]\n{r['text']}" for i, r in enumerate(retrieved)
@@ -287,37 +287,43 @@ class RAGPipeline:
             f"QUESTION: {question}\n\nANSWER:"
         )
 
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key={api_key}"
-        payload = {"contents": [{"parts": [{"text": prompt}]}]}
         resp = None
         for attempt in range(3):
             async with httpx.AsyncClient(timeout=40.0) as client:
-                resp = await client.post(url, headers={"Content-Type": "application/json"}, json=payload)
+                resp = await client.post(
+                    "https://api.groq.com/openai/v1/chat/completions",
+                    headers={
+                        "Content-Type": "application/json",
+                        "Authorization": f"Bearer {api_key}",
+                    },
+                    json={
+                        "model": "llama-3.1-8b-instant",
+                        "messages": [{"role": "user", "content": prompt}],
+                        "temperature": 0.1,
+                        "max_tokens": 1024,
+                    },
+                )
             if resp.status_code == 429 and attempt < 2:
                 await asyncio.sleep(6)
                 continue
             break
 
         if resp.status_code != 200:
-            logger.warning("Gemini API error %d: %s", resp.status_code, resp.text[:200])
+            logger.warning("Groq API error %d: %s", resp.status_code, resp.text[:200])
             return {
-                "error": f"Gemini API returned {resp.status_code}",
+                "error": f"Groq API returned {resp.status_code}",
                 "answer": None,
                 "retrieved": retrieved,
                 "retrieval_mode": retrieval_mode,
             }
 
         data = resp.json()
-        answer = (
-            data["candidates"][0]["content"]["parts"][0]["text"]
-            if data.get("candidates")
-            else "No response"
-        )
+        answer = data["choices"][0]["message"]["content"] if data.get("choices") else "No response"
         result = {
             "answer": answer,
             "retrieved": retrieved,
             "retrieval_mode": retrieval_mode,
-            "model": "gemini-2.0-flash-lite",
+            "model": "llama-3.1-8b-instant",
         }
         self._cache[cache_key] = result
         return result
