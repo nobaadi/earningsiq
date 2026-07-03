@@ -188,6 +188,7 @@ class RAGPipeline:
         self._tfidf: dict[str, TFIDFIndex] = {}
         self._bm25: dict[str, BM25Index] = {}
         self._meta: dict[str, dict] = {}
+        self._cache: dict[str, dict] = {}
 
     def _chunk_text(self, text: str) -> list[str]:
         words = text.split()
@@ -261,6 +262,10 @@ class RAGPipeline:
         if doc_id not in self._tfidf:
             return {"error": "Document not indexed", "answer": None, "retrieved": []}
 
+        cache_key = f"{doc_id}:{retrieval_mode}:{question.lower().strip()}"
+        if cache_key in self._cache:
+            return self._cache[cache_key]
+
         index = self._bm25[doc_id] if retrieval_mode == "bm25" else self._tfidf[doc_id]
         retrieved = index.query(question, k=TOP_K)
 
@@ -308,9 +313,11 @@ class RAGPipeline:
             if data.get("candidates")
             else "No response"
         )
-        return {
+        result = {
             "answer": answer,
             "retrieved": retrieved,
             "retrieval_mode": retrieval_mode,
             "model": "gemini-2.0-flash-lite",
         }
+        self._cache[cache_key] = result
+        return result
